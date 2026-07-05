@@ -33,6 +33,51 @@ export const PIPELINE_STATUSES: ProspectStatus[] = [
   'Archived',
 ]
 
+export type PipelineView = 'semua' | 'aktif' | 'followup' | 'arsip'
+
+export const PIPELINE_VIEW_STATUSES: Record<PipelineView, ProspectStatus[]> = {
+  semua: [
+    'New',
+    'Need Review',
+    'Ready to Contact',
+    'Contacted',
+    'Replied',
+    'Interested',
+    'Need Follow Up',
+    'Proposal Sent',
+    'Deal',
+    'Rejected',
+    'No Response',
+    'Archived',
+  ],
+  aktif: [
+    'New',
+    'Need Review',
+    'Ready to Contact',
+    'Contacted',
+    'Replied',
+    'Interested',
+    'Need Follow Up',
+    'Proposal Sent',
+    'Deal',
+  ],
+  followup: ['Contacted', 'Replied', 'Interested', 'Need Follow Up', 'Proposal Sent'],
+  arsip: ['Deal', 'Rejected', 'No Response', 'Archived'],
+}
+
+export function parsePipelineView(value: string | undefined | null): PipelineView {
+  if (value === 'aktif' || value === 'followup' || value === 'arsip') return value
+  return 'semua'
+}
+
+export function filterStatusesByView<T extends ProspectStatus>(
+  statuses: readonly T[],
+  view: PipelineView,
+): T[] {
+  const allowed = new Set<ProspectStatus>(PIPELINE_VIEW_STATUSES[view])
+  return statuses.filter((status) => allowed.has(status as ProspectStatus))
+}
+
 export const CHANNELS = ['WhatsApp', 'Email', 'Phone', 'LinkedIn'] as const
 export type Channel = (typeof CHANNELS)[number]
 

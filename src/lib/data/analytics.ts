@@ -83,3 +83,37 @@ export function prospectByIdMap(prospects: Prospect[]) {
 export function salesByIdMap(sales: Sales[]) {
   return new Map(sales.map((s) => [s.id, s]))
 }
+
+export interface PipelineMetrics {
+  total: number
+  totalValue: number
+  topStage: ProspectStatus | null
+  staleCount: number
+}
+
+export function pipelineMetrics(prospects: Prospect[], now: Date = new Date()): PipelineMetrics {
+  const total = prospects.length
+  const totalValue = 0
+
+  const counts = new Map<ProspectStatus, number>()
+  for (const prospect of prospects) {
+    counts.set(prospect.status, (counts.get(prospect.status) ?? 0) + 1)
+  }
+
+  let topStage: ProspectStatus | null = null
+  let topCount = -1
+  for (const [status, count] of counts) {
+    if (status === 'Archived') continue
+    if (count > topCount) {
+      topCount = count
+      topStage = status
+    }
+  }
+
+  const staleCount = prospects.filter((prospect) => {
+    if (!prospect.next_follow_up_at) return false
+    return new Date(prospect.next_follow_up_at) < now
+  }).length
+
+  return { total, totalValue, topStage, staleCount }
+}
