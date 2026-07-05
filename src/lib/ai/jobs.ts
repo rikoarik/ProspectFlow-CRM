@@ -180,7 +180,6 @@ async function runJob(job: GenerateJob): Promise<JobResult> {
           { role: 'user', content: buildUserPrompt(input, job.brief ?? undefined) },
         ],
         temperature: 0.7,
-        maxTokens: 4096,
       })
       html = sanitizeHtmlForStorage(extractHtml(raw))
     } catch (err) {

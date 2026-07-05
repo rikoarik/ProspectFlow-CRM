@@ -35,3 +35,12 @@
 - Add Supabase Storage upload flow for audit/proposal/mockup files.
 - Add automated tests for CSV parser, WhatsApp normalization, and API routes.
 - Replace native drag/drop with dnd-kit for stronger touch/keyboard support if needed.
+
+## Current Design Work
+- [x] Explore project context for AI research enrichment
+- [x] Clarify V1 scope, sources, entry point, and persistence model
+- [x] Propose architecture approaches and select dedicated `/research` route with persisted history
+- [x] Write AI research enrichment design spec in `docs/superpowers/specs/2026-07-05-ai-research-enrichment-design.md`
+- [ ] Self-review the design spec for placeholders, contradictions, and scope drift
+- [ ] Get user review/approval on the written spec
+- [ ] Convert approved design into an implementation plan
