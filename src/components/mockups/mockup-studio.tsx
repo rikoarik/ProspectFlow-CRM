@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Monitor, RefreshCw, Save, Smartphone, Sparkles, Tablet } from 'lucide-react'
+import { CheckCircle2, Circle, Clock, Copy, Monitor, RefreshCw, Save, Smartphone, Sparkles, Tablet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
@@ -19,6 +19,15 @@ interface MockupStudioProps {
 }
 
 type Device = 'desktop' | 'tablet' | 'mobile'
+type GenerateStage = 'idle' | 'preparing' | 'contacting' | 'waiting' | 'sanitizing' | 'saving' | 'done' | 'error'
+
+const GENERATE_STEPS: { key: GenerateStage; label: string; helper: string }[] = [
+  { key: 'preparing', label: 'Menyiapkan brief', helper: 'Mengambil data prospect dan sinyal audit.' },
+  { key: 'contacting', label: 'Menghubungi AI provider', helper: 'Mengirim instruksi desain ke model.' },
+  { key: 'waiting', label: 'Menunggu respons AI', helper: 'Biasanya 30–90 detik untuk mockup lengkap.' },
+  { key: 'sanitizing', label: 'Membersihkan HTML', helper: 'Menyiapkan hasil agar aman untuk preview.' },
+  { key: 'saving', label: 'Menyimpan preview', helper: 'Menyimpan hasil ke audit record dan storage.' },
+]
 
 interface GenerateResponse {
   html: string
@@ -43,33 +52,51 @@ export function MockupStudio({
   const [auditId, setAuditId] = React.useState<string | null>(initialAuditId)
   const [device, setDevice] = React.useState<Device>('desktop')
   const [generating, setGenerating] = React.useState(false)
+  const [generateStage, setGenerateStage] = React.useState<GenerateStage>('idle')
+  const [generationStartedAt, setGenerationStartedAt] = React.useState<number | null>(null)
   const [saving, setSaving] = React.useState(false)
   const [warning, setWarning] = React.useState<string | null>(null)
 
   const debouncedHtml = useDebounced(html, 250)
+  const elapsedMs = useElapsed(generationStartedAt, generating)
 
   async function handleGenerate(brief?: string) {
     setGenerating(true)
+    setGenerateStage('preparing')
+    setGenerationStartedAt(Date.now())
     setWarning(null)
     try {
+      await delay(250)
+      setGenerateStage('contacting')
+      await delay(250)
+      setGenerateStage('waiting')
+
       const response = await apiRequest<GenerateResponse>('/api/mockups/generate', {
         method: 'POST',
         body: JSON.stringify({ prospect_id: prospect.id, audit_id: auditId, brief }),
       })
+
+      setGenerateStage('sanitizing')
+      await delay(150)
       setHtml(response.html)
       setUrl(response.url)
       setFallback(Boolean(response.fallback))
       setAuditId(response.audit_id ?? null)
       if (response.warning) setWarning(response.warning)
+
+      setGenerateStage('saving')
+      await delay(150)
       toast({
-        title: response.fallback ? 'Mockup scaffold dibuat' : 'Mockup baru di-generate',
+        title: response.fallback ? 'Template fallback dibuat' : 'Mockup baru di-generate',
         description: response.fallback
-          ? 'OPENAI_API_KEY belum diset — pakai template offline. Tambah key di .env.local untuk hasil dari AI.'
+          ? 'AI provider lambat atau gagal, jadi ProspectFlow membuat template awal agar kamu tetap bisa lanjut.'
           : 'Preview diperbarui.',
         variant: response.fallback ? 'info' : 'success',
       })
       router.refresh()
+      setGenerateStage('done')
     } catch (err) {
+      setGenerateStage('error')
       toast({
         title: 'Gagal generate mockup',
         description: err instanceof Error ? err.message : 'Coba lagi sebentar.',
@@ -77,6 +104,7 @@ export function MockupStudio({
       })
     } finally {
       setGenerating(false)
+      setGenerationStartedAt(null)
     }
   }
 
@@ -160,7 +188,7 @@ export function MockupStudio({
             <RefreshCw className={cn('h-4 w-4', generating && 'animate-spin')} />
             {generating ? 'Generating…' : 'Regenerate'}
           </Button>
-          <Button variant="accent" onClick={handleSave} disabled={saving || !html.trim()}>
+          <Button variant="accent" onClick={handleSave} disabled={generating || saving || !html.trim()}>
             <Save className="h-4 w-4" />
             {saving ? 'Saving…' : 'Save'}
           </Button>
@@ -169,7 +197,7 @@ export function MockupStudio({
 
       {warning ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          ⚠️ {warning}
+          ⚠️ {formatGenerateWarning(warning, fallback)}
         </div>
       ) : null}
 
@@ -188,8 +216,9 @@ export function MockupStudio({
           <Textarea
             value={html}
             onChange={(event) => setHtml(event.target.value)}
+            readOnly={generating}
             spellCheck={false}
-            placeholder="Klik Regenerate untuk generate mockup. Hasil AI akan muncul di sini dan langsung ter-render di preview."
+            placeholder={generating ? 'AI sedang merangkai HTML…' : 'Klik Regenerate untuk generate mockup. Hasil AI akan muncul di sini dan langsung ter-render di preview.'}
             className="h-full min-h-[480px] flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed focus-visible:ring-0"
           />
           <div className="flex items-center justify-between border-t border-slate-100 px-3 py-1.5 text-[11px] text-slate-500">
@@ -216,7 +245,13 @@ export function MockupStudio({
           </div>
           <div className="flex-1 overflow-auto bg-slate-100 p-3">
             <div className={cn('h-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm', deviceSize)}>
-              {html ? (
+              {generating ? (
+                <GenerateProgress
+                  stage={generateStage}
+                  elapsedMs={elapsedMs}
+                  hasExistingHtml={Boolean(html.trim())}
+                />
+              ) : html ? (
                 <iframe
                   key={device}
                   title="AI mockup preview"
@@ -272,4 +307,139 @@ function useDebounced<T>(value: T, delay: number): T {
     return () => clearTimeout(handle)
   }, [value, delay])
   return debounced
+}
+
+function useElapsed(startedAt: number | null, running: boolean): number {
+  const [now, setNow] = React.useState(Date.now())
+  React.useEffect(() => {
+    if (!running || !startedAt) return
+    const id = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(id)
+  }, [running, startedAt])
+  if (!startedAt) return 0
+  return Math.max(0, now - startedAt)
+}
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
+function formatElapsed(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
+
+const STAGE_ORDER: GenerateStage[] = ['preparing', 'contacting', 'waiting', 'sanitizing', 'saving']
+
+function GenerateProgress({
+  stage,
+  elapsedMs,
+  hasExistingHtml,
+}: {
+  stage: GenerateStage
+  elapsedMs: number
+  hasExistingHtml: boolean
+}) {
+  const activeIndex = STAGE_ORDER.indexOf(stage)
+  const visibleSteps =
+    stage === 'error' || stage === 'done'
+      ? GENERATE_STEPS
+      : GENERATE_STEPS.slice(0, Math.max(activeIndex, 0) + 1)
+  const headline =
+    stage === 'error'
+      ? 'Proses berhenti'
+      : stage === 'done'
+        ? 'Mockup siap'
+        : 'AI sedang merangkai mockup…'
+
+  return (
+    <div className="flex h-full min-h-[400px] flex-col bg-slate-50/60 p-5">
+      <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+          {stage === 'error' ? (
+            <RefreshCw className="h-5 w-5 text-rose-500" />
+          ) : (
+            <Sparkles className="h-5 w-5 animate-pulse text-emerald-500" />
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-semibold text-slate-950">{headline}</div>
+          <div className="mt-0.5 text-xs text-slate-500">
+            {stage === 'error'
+              ? 'Coba klik Regenerate, atau sederhanakan brief terlebih dahulu.'
+              : 'AI mockup biasanya selesai dalam 30–90 detik.'}
+          </div>
+        </div>
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs text-slate-700">
+          <Clock className="h-3.5 w-3.5" />
+          {formatElapsed(elapsedMs)}
+        </div>
+      </div>
+
+      <ol className="mt-4 space-y-2.5">
+        {visibleSteps.map((step) => {
+          const stepIndex = STAGE_ORDER.indexOf(step.key)
+          const isDone =
+            (stage === 'done' && stepIndex <= activeIndex) ||
+            (stage !== 'done' && stage !== 'error' && stepIndex < activeIndex)
+          const isCurrent = !isDone && stage === step.key
+          return (
+            <li
+              key={step.key}
+              className={cn(
+                'flex items-start gap-3 rounded-xl border bg-white px-3 py-2.5 transition',
+                isCurrent
+                  ? 'border-emerald-200 bg-emerald-50/60 shadow-sm'
+                  : isDone
+                    ? 'border-slate-200 bg-white text-slate-500'
+                    : 'border-slate-100 bg-slate-50 text-slate-400',
+              )}
+            >
+              <span className="mt-0.5 shrink-0">
+                {isDone ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                ) : isCurrent ? (
+                  <RefreshCw className="h-4 w-4 animate-spin text-emerald-600" />
+                ) : (
+                  <Circle className="h-4 w-4 text-slate-300" />
+                )}
+              </span>
+              <div className="flex-1 text-xs">
+                <div className={cn('font-medium', isCurrent ? 'text-emerald-700' : 'text-slate-700')}>
+                  {step.label}
+                </div>
+                <div className="mt-0.5 text-slate-400">{step.helper}</div>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+
+      {hasExistingHtml && stage !== 'error' ? (
+        <p className="mt-4 text-[11px] text-slate-400">
+          Preview di atas akan tertimpa saat hasil AI siap. HTML source di panel kiri dikunci selama proses.
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function formatGenerateWarning(warning: string, fallback: boolean): string {
+  if (!warning) return ''
+  if (warning.includes('network') || warning.includes('timeout') || warning.includes('90 detik')) {
+    return fallback
+      ? 'AI provider belum merespons setelah 90 detik, jadi ProspectFlow membuat template fallback agar kamu tetap bisa lanjut. Klik Regenerate untuk coba lagi.'
+      : 'AI provider lambat atau gagal merespons. Coba klik Regenerate untuk coba lagi.'
+  }
+  if (warning.includes('rate_limit')) {
+    return fallback
+      ? 'AI provider sementara membatasi permintaan. Template fallback dipakai agar kamu bisa lanjut, coba Regenerate beberapa menit lagi.'
+      : 'AI provider sementara membatasi permintaan. Coba Regenerate beberapa menit lagi.'
+  }
+  if (warning.includes('missing_key') || warning.includes('belum diset')) {
+    return 'OPENAI_API_KEY belum diisi di .env.local, jadi ProspectFlow memakai template offline. Tambah key lalu Regenerate.'
+  }
+  return warning
 }

@@ -43,7 +43,7 @@ export async function chatCompletion({
   const base = openAiBaseUrl().replace(/\/+$/, '')
   const url = `${base}/chat/completions`
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 30_000)
+  const timeout = setTimeout(() => controller.abort(), 90_000)
   // If the caller passed their own signal, fan-in its abort.
   if (signal) {
     if (signal.aborted) controller.abort()
@@ -83,7 +83,7 @@ export async function chatCompletion({
   } catch (err) {
     if (err instanceof AiError) throw err
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new AiError('network', 'Permintaan ke AI provider timeout setelah 30 detik.')
+      throw new AiError('network', 'AI provider belum merespons setelah 90 detik. Coba ulangi atau sederhanakan brief.')
     }
     throw new AiError('network', err instanceof Error ? err.message : 'Network error saat memanggil AI provider.')
   } finally {
