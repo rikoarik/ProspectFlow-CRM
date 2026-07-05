@@ -1,6 +1,6 @@
 import 'server-only'
 import { getSupabaseAdminClient } from '@/lib/supabase/admin'
-import { mockupsBucket } from '@/lib/env'
+import { mockupsBucket, supabaseStoragePublicBaseUrl } from '@/lib/env'
 
 export interface UploadResult {
   path: string
@@ -30,12 +30,19 @@ export async function uploadMockup(
   }
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(path)
-  return { path, publicUrl: data.publicUrl }
+  return { path, publicUrl: resolvePublicUrl(bucket, path, data.publicUrl) }
+}
+
+function resolvePublicUrl(bucket: string, path: string, fallback: string) {
+  const base = supabaseStoragePublicBaseUrl().replace(/\/$/, '')
+  if (!base) return fallback
+  return `${base}/${bucket}/${path}`
 }
 
 export function getMockupPublicUrl(path: string): string | null {
   const supabase = getSupabaseAdminClient()
   if (!supabase) return null
-  const { data } = supabase.storage.from(mockupsBucket()).getPublicUrl(path)
-  return data.publicUrl
+  const bucket = mockupsBucket()
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+  return resolvePublicUrl(bucket, path, data.publicUrl)
 }

@@ -34,6 +34,30 @@ export function mockupsBucket() {
   return read('SUPABASE_STORAGE_BUCKET_MOCKUPS') || 'mockups'
 }
 
+// S3-compatible Storage access. Optional; used by future SDK-based uploads.
+// These do NOT replace NEXT_PUBLIC_SUPABASE_URL — the Supabase JS client
+// still targets the project API base for Auth/PostgREST/Storage.
+export function supabaseS3Endpoint() {
+  return read('SUPABASE_S3_ENDPOINT')
+}
+
+export function supabaseS3Region() {
+  return read('SUPABASE_S3_REGION')
+}
+
+// Override base used to resolve Storage object public URLs:
+//   {base}/{bucket}/{path}
+// (e.g. https://<ref>.supabase.co/storage/v1/object/public)
+export function supabaseStoragePublicBaseUrl() {
+  return read('SUPABASE_STORAGE_PUBLIC_BASE_URL')
+}
+
+export function isStorageS3Configured() {
+  return Boolean(
+    supabaseS3Endpoint() && supabaseS3Region() && supabaseStoragePublicBaseUrl(),
+  )
+}
+
 export function isSupabaseConfigured() {
   return Boolean(supabaseUrl() && supabaseAnonKey())
 }

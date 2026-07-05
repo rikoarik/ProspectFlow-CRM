@@ -1,11 +1,7 @@
 -- ProspectFlow CRM seed data generated from pt_prospect_expanded_verified_contacts_2026.xlsx
 
 insert into profiles (id, full_name, email, role) values
-  ('sales-1', 'Admin Demo', 'admin@prospectflow.app', 'Admin'),
-  ('sales-2', 'Budi Santoso', 'budi@prospectflow.app', 'Sales'),
-  ('sales-3', 'Citra Wijaya', 'citra@prospectflow.app', 'Sales'),
-  ('sales-4', 'Dimas Pratama', 'dimas@prospectflow.app', 'Sales')
-on conflict (id) do nothing;
+  ('sales-1', 'Admin', 'admin@prospectflow.app', 'Admin') on conflict (id) do nothing;
 
 insert into prospects (id, company_name, industry, city, website, email, phone, contact_person, source, priority, active_confidence, active_evidence, website_audit_signal, offer_angle, assigned_to, status, first_channel, last_contacted_at, next_follow_up_at, notes, created_at, updated_at) values
   ('prospect-1', 'PT Adimitra Karunia', 'Import, Export & Trading', 'Surabaya', 'https://adimitrakarunia.co.id/contact.html', 'marketing@adimitrakarunia.co.id, adikarunia121601@gmail.com', '031-3282356 / Fax 031-3282361', null, 'https://adimitrakarunia.co.id/contact.html', 'A', 'High', 'Official site reachable; contact page lists office, phone, emails, import/export services.', 'Copyright 2015, old layout, Yahoo Messenger element, weak mobile/CTA.', 'Modern B2B import-export company profile + WhatsApp CTA + service pages.', 'sales-2', 'New', 'Email', '2026-07-03T00:00:00.000Z', '2026-07-01T00:00:00.000Z', 'Strong demo candidate; previous mockup already started.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z'),
@@ -122,8 +118,7 @@ insert into prospects (id, company_name, industry, city, website, email, phone, 
   ('prospect-112', 'PT Jetour Motor Indonesia', 'Automotive', 'Jakarta', 'https://jetour.co.id/id/contact-us', 'Info@jetourmotor.id', '0800-1-575757', null, 'https://jetour.co.id/id/contact-us', 'B', 'High', 'Official contact page lists phone, email and copyright 2026.', 'Large brand; benchmark/contact UX only.', 'Automotive contact UX benchmark.', 'sales-2', 'New', 'Email', null, '2026-07-02T00:00:00.000Z', 'Large company; low priority.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z'),
   ('prospect-113', 'PT Mega Kapuas Multiniaga', 'Building material distribution', 'Jakarta', 'https://megakapuas.indonetwork.co.id/', null, '64701809 / 08128099077', null, 'https://megakapuas.indonetwork.co.id/', 'A', 'Medium', 'Indonetwork profile says company has more than 10 years experience distributing building materials.', 'Directory/profile listing; strong opportunity for official company profile/catalog.', 'Building material distributor website + WA quote CTA.', 'sales-3', 'New', 'WhatsApp', null, null, 'Need email/official site verification.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z'),
   ('prospect-114', 'PT Anugrah Niaga Mandiri', 'Laboratory equipment distributor', 'Jakarta Timur', 'https://www.indonetwork.co.id/product/preparat-parasitologi-5436846', null, '+62-21 8690 6782 / +62-21 8690 6783 / 0816 1337 337', null, 'https://www.indonetwork.co.id/product/preparat-parasitologi-5436846', 'A', 'Medium', 'Indonetwork product page lists official website, phone and contact names.', 'Marketplace listing; opportunity for a clean product catalog and lab equipment landing.', 'Laboratory distributor catalog + inquiry form.', 'sales-4', 'New', 'WhatsApp', null, null, 'Use website/contact form if email hidden.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z'),
-  ('prospect-115', 'PT Berca Persada Indonesia', 'Industrial valves / regulator / Woodward/Zexel', 'Jakarta Selatan', 'https://bercapersada.indonetwork.co.id/', 'marketing@bercapersada.com', '0217873824 / 0852 11111 581', null, 'https://bercapersada.indonetwork.co.id/', 'A', 'Medium', 'Indonetwork profile lists address, phone, mobile and email.', 'Old directory-style profile; opportunity for clean official catalog + quote funnel.', 'Industrial parts supplier company profile + catalog.', 'sales-2', 'New', 'Email', null, '2026-07-05T00:00:00.000Z', 'Verify official domain before outreach.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z')
-on conflict (id) do nothing;
+  ('prospect-115', 'PT Berca Persada Indonesia', 'Industrial valves / regulator / Woodward/Zexel', 'Jakarta Selatan', 'https://bercapersada.indonetwork.co.id/', 'marketing@bercapersada.com', '0217873824 / 0852 11111 581', null, 'https://bercapersada.indonetwork.co.id/', 'A', 'Medium', 'Indonetwork profile lists address, phone, mobile and email.', 'Old directory-style profile; opportunity for clean official catalog + quote funnel.', 'Industrial parts supplier company profile + catalog.', 'sales-2', 'New', 'Email', null, '2026-07-05T00:00:00.000Z', 'Verify official domain before outreach.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z') on conflict (id) do nothing;
 
 insert into message_templates (id, title, channel, category, content) values
   ('tpl-1', 'First Outreach WhatsApp', 'WhatsApp', 'First Outreach', 'Halo Pak/Bu, saya sempat melihat website {{company_name}}. Bisnisnya terlihat aktif dan cukup potensial. Saat saya buka lewat HP, ada beberapa bagian yang menurut saya bisa dibuat lebih mudah untuk calon klien menghubungi tim Bapak/Ibu. Saya coba buat mini audit singkat dan contoh improvement untuk halaman utamanya. Boleh saya kirimkan di sini?'),
@@ -148,8 +143,7 @@ Terima kasih,
   ('tpl-6', 'Kirim Proposal', 'Email', 'Proposal', 'Subject: Proposal redesign website {{company_name}}
 
 Terima kasih atas waktunya. Saya lampirkan proposal redesign untuk {{company_name}}. Highlight utama: peningkatan CTA WhatsApp, optimasi mobile, dan penawaran {{offer_angle}}.'),
-  ('tpl-7', 'Closing Reminder', 'WhatsApp', 'Closing', 'Halo {{contact_person}}, ingin mengingatkan proposal untuk {{company_name}}. Jika ada pertanyaan atau penyesuaian, saya siap bantu. Semoga kita bisa mulai minggu ini.')
-on conflict (id) do nothing;
+  ('tpl-7', 'Closing Reminder', 'WhatsApp', 'Closing', 'Halo {{contact_person}}, ingin mengingatkan proposal untuk {{company_name}}. Jika ada pertanyaan atau penyesuaian, saya siap bantu. Semoga kita bisa mulai minggu ini.') on conflict (id) do nothing;
 
 insert into audits (id, prospect_id, problem_summary, mobile_issue, cta_issue, performance_issue, trust_issue, copywriting_issue, recommendation, audit_status, audit_file_url, mockup_url) values
   ('audit-1', 'prospect-1', 'Copyright 2015, old layout, Yahoo Messenger element, weak mobile/CTA.', true, true, true, false, true, 'Modern B2B import-export company profile + WhatsApp CTA + service pages.', 'Sent', null, null),
@@ -163,8 +157,7 @@ insert into audits (id, prospect_id, problem_summary, mobile_issue, cta_issue, p
   ('audit-9', 'prospect-9', 'Generic construction theme; possible mismatch footer text ''Bosa Construction Industrial''.', true, true, false, false, true, 'Trust cleanup + engineering profile + project/service lead capture.', 'Not Started', null, null),
   ('audit-10', 'prospect-10', 'Powered by Blogger, old copyright 2011, list-based client page.', false, true, true, true, false, 'Convert old Blogger profile into professional contractor portfolio.', 'Sent', null, null),
   ('audit-11', 'prospect-11', 'Proudly powered by WordPress; ecommerce-looking theme may not fit premium B2B marine supplier.', true, true, false, false, false, 'Premium marine supplier landing + product inquiry flow.', 'Draft', null, null),
-  ('audit-12', 'prospect-12', 'Already credible; only minor UX/CTA opportunity.', false, true, false, true, false, 'UX audit / landing conversion, not full redesign.', 'Not Started', null, null)
-on conflict (id) do nothing;
+  ('audit-12', 'prospect-12', 'Already credible; only minor UX/CTA opportunity.', false, true, false, true, false, 'UX audit / landing conversion, not full redesign.', 'Not Started', null, null) on conflict (id) do nothing;
 
 insert into communications (id, prospect_id, sales_id, channel, direction, message_summary, response_summary, status_after, created_at) values
   ('comm-1', 'prospect-1', 'sales-2', 'Email', 'Inbound', 'Klien membalas dan tertarik dengan audit singkat.', 'Ingin tahu jadwal diskusi lanjutan.', 'Replied', '2026-07-03T00:00:00.000Z'),
@@ -189,8 +182,7 @@ insert into communications (id, prospect_id, sales_id, channel, direction, messa
   ('comm-20', 'prospect-96', 'sales-4', 'WhatsApp', 'Outbound', 'Mengirim pesan outreach pertama dan mini audit website.', 'Belum ada balasan.', 'Contacted', '2026-06-28T00:00:00.000Z'),
   ('comm-21', 'prospect-101', 'sales-3', 'WhatsApp', 'Inbound', 'Klien membalas dan tertarik dengan audit singkat.', 'Ingin tahu jadwal diskusi lanjutan.', 'Replied', '2026-07-03T00:00:00.000Z'),
   ('comm-22', 'prospect-106', 'sales-2', 'Email', 'Outbound', 'Mengirim pesan outreach pertama dan mini audit website.', 'Belum ada balasan.', 'Contacted', '2026-06-28T00:00:00.000Z'),
-  ('comm-23', 'prospect-111', 'sales-4', 'Email', 'Outbound', 'Mengirim pesan outreach pertama dan mini audit website.', 'Belum ada balasan.', 'Contacted', '2026-07-03T00:00:00.000Z')
-on conflict (id) do nothing;
+  ('comm-23', 'prospect-111', 'sales-4', 'Email', 'Outbound', 'Mengirim pesan outreach pertama dan mini audit website.', 'Belum ada balasan.', 'Contacted', '2026-07-03T00:00:00.000Z') on conflict (id) do nothing;
 
 insert into follow_ups (id, prospect_id, sales_id, follow_up_date, reason, status, notes) values
   ('fu-1', 'prospect-1', 'sales-2', '2026-07-01T00:00:00.000Z', 'Follow up setelah outreach awal', 'Done', null),
@@ -231,5 +223,4 @@ insert into follow_ups (id, prospect_id, sales_id, follow_up_date, reason, statu
   ('fu-36', 'prospect-106', 'sales-2', '2026-07-01T00:00:00.000Z', 'Follow up setelah outreach awal', 'Pending', null),
   ('fu-37', 'prospect-109', 'sales-2', '2026-07-04T00:00:00.000Z', 'Follow up setelah outreach awal', 'Done', null),
   ('fu-38', 'prospect-112', 'sales-2', '2026-07-02T00:00:00.000Z', 'Follow up setelah outreach awal', 'Pending', null),
-  ('fu-39', 'prospect-115', 'sales-2', '2026-07-05T00:00:00.000Z', 'Follow up setelah outreach awal', 'Pending', null)
-on conflict (id) do nothing;
+  ('fu-39', 'prospect-115', 'sales-2', '2026-07-05T00:00:00.000Z', 'Follow up setelah outreach awal', 'Pending', null) on conflict (id) do nothing;
