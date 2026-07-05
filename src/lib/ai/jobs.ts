@@ -231,7 +231,18 @@ async function runJob(job: GenerateJob): Promise<JobResult> {
 }
 
 function extractHtml(raw: string): string {
-  const fenced = raw.match(/```(?:html)?\s*([\s\S]*?)```/i)
-  if (fenced) return fenced[1].trim()
+  if (!raw) return ''
+  // Capture all ```html ... ``` fenced blocks and join them; fallback to raw.
+  const regex = /```(?:html)?\s*([\s\S]*?)```/gi
+  const parts: string[] = []
+  let m: RegExpExecArray | null
+  while ((m = regex.exec(raw)) !== null) {
+    if (m[1]) parts.push(m[1].trim())
+  }
+  if (parts.length > 0) {
+    const joined = parts.join('\n\n')
+    // Prefer joined fenced content if it seems substantive, otherwise fall back
+    if (joined.length > 0) return joined.trim()
+  }
   return raw.trim()
 }

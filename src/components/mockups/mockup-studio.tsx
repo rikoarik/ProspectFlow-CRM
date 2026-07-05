@@ -391,10 +391,16 @@ export function MockupStudio({
 
 function splitStyle(input: string): { html: string; css: string } {
   const html = input ?? ''
-  const match = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)
-  if (match) {
-    const css = match[1].trim()
-    const without = html.replace(match[0], '')
+  const regex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi
+  const parts: string[] = []
+  let m: RegExpExecArray | null
+  while ((m = regex.exec(html)) !== null) {
+    if (m[1]) parts.push(m[1].trim())
+  }
+  if (parts.length > 0) {
+    const css = parts.join('\n\n')
+    // remove all style blocks
+    const without = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
     return { html: without, css }
   }
   return { html, css: '' }

@@ -21,10 +21,16 @@ export async function uploadMockup(
   // If the generated HTML contains an inline <style>...</style>, extract it
   // and upload it as a separate .css file, then replace the style block
   // with a <link rel="stylesheet" href="..."> referencing the uploaded CSS.
-  const styleMatch = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)
+  // Extract all <style>...</style> blocks and upload combined CSS as one file.
+  const styleRegex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi
+  const cssParts: string[] = []
+  let mm: RegExpExecArray | null
+  while ((mm = styleRegex.exec(html)) !== null) {
+    if (mm[1]) cssParts.push(mm[1].trim())
+  }
   let finalHtml = html
-  if (styleMatch && styleMatch[1]) {
-    const cssContent = styleMatch[1].trim()
+  if (cssParts.length > 0) {
+    const cssContent = cssParts.join('\n\n')
     if (cssContent.length > 0) {
       const cssFileName = auditId ? `${auditId}-${stamp}.css` : `adhoc-${stamp}.css`
       const cssPath = `prospect/${prospectId}/${cssFileName}`
@@ -35,13 +41,21 @@ export async function uploadMockup(
         upsert: false,
       })
       if (cssErr) {
-        // If uploading CSS fails, continue and keep inline styles rather than aborting.
         console.warn('Upload CSS failed, keeping inline styles:', cssErr.message)
       } else {
         const { data: cssData } = supabase.storage.from(bucket).getPublicUrl(cssPath)
         const cssPublic = resolvePublicUrl(bucket, cssPath, cssData.publicUrl)
-        // Replace the first <style>...</style> with a stylesheet link
-        finalHtml = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/i, `<link rel="stylesheet" href="${cssPublic}">`)
+        // Remove all style blocks and insert a single link to the uploaded CSS
+        finalHtml = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+        if (/<head\b/i.test(finalHtml)) {
+          finalHtml = finalHtml.replace(/<head\b([^>]*)>/i, `<head$1><link rel="stylesheet" href="${cssPublic}">`)
+        } else if (/<html\b/i.test(finalHtml)) {
+          finalHtml = finalHtml.replace(/<html\b([^>]*)>/i, `<html$1><head><link rel="stylesheet" href="${cssPublic}"></head>`)
+        } else if (/<!doctype html>/i.test(finalHtml)) {
+          finalHtml = finalHtml.replace(/<!(doctype|DOCTYPE)\s+html>/i, (m) => `${m}\n<head><link rel="stylesheet" href="${cssPublic}"></head>`)
+        } else {
+          finalHtml = `<!DOCTYPE html><head><link rel="stylesheet" href="${cssPublic}"></head>${finalHtml}`
+        }
       }
     }
   }
