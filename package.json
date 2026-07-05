@@ -8,7 +8,8 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "convert-seed": "node scripts/convert-seed.mjs"
+    "convert-seed": "node scripts/convert-seed.mjs",
+    "bootstrap-auth": "node scripts/bootstrap-seed-auth.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

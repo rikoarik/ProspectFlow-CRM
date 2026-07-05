@@ -42,7 +42,7 @@ export default async function DashboardPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard title="Total prospek" value={stats.total} helper="Seeded dari Combined Database" icon={Target} tone="blue" />
+        <KpiCard title="Total prospek" value={stats.total} helper="Seluruh prospek aktif di CRM" icon={Target} tone="blue" />
         <KpiCard title="Belum dihubungi" value={stats.new} helper="Butuh review dan outreach" icon={Zap} tone="amber" />
         <KpiCard title="Sudah dibalas" value={stats.replied} helper={`${stats.contactedToReplied}% contacted → replied`} icon={MessageCircleReply} tone="violet" />
         <KpiCard title="Deal" value={stats.deal} helper={`${stats.repliedToDeal}% replied → deal`} icon={CheckCircle2} tone="emerald" />

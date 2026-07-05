@@ -1,4 +1,3 @@
-import 'server-only'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAnonKey, supabaseUrl } from '@/lib/env'

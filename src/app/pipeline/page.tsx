@@ -9,7 +9,7 @@ export default async function PipelinePage() {
       <PageHeader
         eyebrow="Kanban pipeline"
         title="Drag prospek antar status"
-        description="Pindahkan card dari New sampai Deal. Setiap perubahan status tersimpan di data layer demo/Supabase."
+        description="Pindahkan card dari New sampai Deal. Setiap perubahan status tersimpan di CRM."
       />
       <KanbanBoard initialProspects={prospects} sales={sales} />
     </div>

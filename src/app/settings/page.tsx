@@ -13,7 +13,7 @@ export default function SettingsPage() {
         description="Status environment, Supabase connection, dan storage readiness untuk production."
       />
       <div className="grid gap-4 xl:grid-cols-3">
-        <SettingCard icon={<Database className="h-5 w-5" />} title="Supabase database" status={hasSupabase ? 'Configured' : 'Demo fallback'} description={hasSupabase ? 'App membaca data dari Supabase.' : 'Env belum diisi, app memakai seed lokal dari Excel.'} />
+        <SettingCard icon={<Database className="h-5 w-5" />} title="Supabase database" status={hasSupabase ? 'Configured' : 'Not configured'} description={hasSupabase ? 'App membaca data operasional dari Supabase.' : 'Isi environment Supabase untuk mengaktifkan data operasional dan login tim.'} />
         <SettingCard icon={<ShieldCheck className="h-5 w-5" />} title="Auth & roles" status="Schema ready" description="profiles.role mendukung Admin/Sales. RLS policy ada di supabase/schema.sql." />
         <SettingCard icon={<UploadCloud className="h-5 w-5" />} title="Storage" status="Planned" description="attachments table siap; upload runtime bisa ditambahkan setelah bucket Supabase dibuat." />
       </div>
