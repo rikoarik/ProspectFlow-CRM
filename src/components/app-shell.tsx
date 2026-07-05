@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { ToastProvider } from '@/components/ui/toast'
 import { UserMenu } from '@/components/auth/user-menu'
+import { Brand } from '@/components/brand'
 
 interface AppShellUser {
   name: string
@@ -40,25 +41,6 @@ const nav = [
   { href: '/sales-team', label: 'Sales Team', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
-
-function Brand() {
-  return (
-    <Link href="/" className="group flex items-center gap-3">
-      <div className="relative h-11 w-11 overflow-hidden rounded-2xl bg-slate-950">
-        <div className="absolute inset-x-2 top-2 h-1 rounded-full bg-emerald-400" />
-        <div className="absolute bottom-2 left-2 right-2 grid grid-cols-3 gap-1">
-          <span className="h-5 rounded bg-emerald-500" />
-          <span className="h-7 rounded bg-cyan-400" />
-          <span className="h-4 rounded bg-blue-400" />
-        </div>
-      </div>
-      <div>
-        <div className="text-lg font-black tracking-tight text-slate-950">ProspectFlow</div>
-        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-600">CRM</div>
-      </div>
-    </Link>
-  )
-}
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
