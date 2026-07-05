@@ -110,7 +110,7 @@ export function AppShell({
               <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                 <div className="text-sm font-semibold text-emerald-950">War-room mode</div>
                 <p className="mt-1 text-xs leading-5 text-emerald-700">
-                  115 verified prospects seeded from your research workbook.
+                  Kelola prospek, audit, follow-up, dan mockup tim sales dari satu workspace.
                 </p>
               </div>
             </div>
@@ -152,8 +152,8 @@ export function AppShell({
                   <UserMenu name={currentUser.name} email={currentUser.email} role={currentUser.role} />
                 ) : (
                   <div className="hidden text-right sm:block">
-                    <div className="text-sm font-semibold text-slate-950">Not signed in</div>
-                    <div className="text-xs text-slate-500">demo mode</div>
+                    <div className="text-sm font-semibold text-slate-950">Belum login</div>
+                    <div className="text-xs text-slate-500">Masuk untuk melihat pipeline tim.</div>
                   </div>
                 )}
               </div>

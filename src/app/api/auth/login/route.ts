@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getProfileByAuthUserId } from '@/lib/auth/server'
 import { isAuthConfigured } from '@/lib/env'
 
 export const runtime = 'nodejs'
@@ -38,11 +39,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, full_name, email, role')
-    .eq('auth_user_id', data.user.id)
-    .maybeSingle()
+  const profile = await getProfileByAuthUserId(data.user.id)
+  if (!profile) {
+    await supabase.auth.signOut()
+    return NextResponse.json(
+      { error: 'Akun berhasil login, tetapi belum terhubung ke profil CRM.' },
+      { status: 403 },
+    )
+  }
 
   return NextResponse.json({
     user: { id: data.user.id, email: data.user.email },
