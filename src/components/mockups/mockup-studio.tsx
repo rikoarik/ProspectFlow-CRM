@@ -277,7 +277,7 @@ export function MockupStudio({
       ) : null}
 
       <div className="grid flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <div className="flex flex-col rounded-2xl border border-slate-200 bg-white">
+        <div className="flex flex-col rounded-2xl border border-slate-200 bg-white min-h-0">
           <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 text-xs text-slate-500">
             <span>HTML source</span>
             <button
@@ -288,7 +288,7 @@ export function MockupStudio({
               <Copy className="h-3 w-3" /> Copy
             </button>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 flex-1 min-h-0">
             <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
               <div className="flex items-center gap-2">
                 <button
@@ -315,7 +315,7 @@ export function MockupStudio({
               <div className="text-xs text-slate-500">{activeTab === 'html' ? 'HTML (tanpa <style>)' : 'CSS (ekstrak)'}</div>
             </div>
 
-            <div className="p-3">
+            <div className="p-3 flex-1 min-h-0 overflow-hidden">
               {activeTab === 'css' ? (
                 <Textarea
                   value={css}
@@ -323,7 +323,7 @@ export function MockupStudio({
                   readOnly={generating}
                   spellCheck={false}
                   placeholder={generating ? 'AI sedang merangkai CSS…' : 'CSS yang diekstrak dari dokumen akan muncul di sini. Edit bebas.'}
-                  className="h-40 w-full resize-none font-mono text-xs leading-relaxed focus-visible:ring-0"
+                  className="h-full min-h-0 w-full resize-none font-mono text-xs leading-relaxed focus-visible:ring-0"
                 />
               ) : (
                 <Textarea
@@ -332,7 +332,7 @@ export function MockupStudio({
                   readOnly={generating}
                   spellCheck={false}
                   placeholder={generating ? 'AI sedang merangkai HTML…' : 'Klik Regenerate untuk generate mockup. Hasil AI akan muncul di sini dan langsung ter-render di preview.'}
-                  className="h-full min-h-[320px] flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed focus-visible:ring-0"
+                  className="h-full min-h-0 flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed focus-visible:ring-0"
                 />
               )}
             </div>
