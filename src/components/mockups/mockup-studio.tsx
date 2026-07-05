@@ -19,23 +19,41 @@ interface MockupStudioProps {
 }
 
 type Device = 'desktop' | 'tablet' | 'mobile'
-type GenerateStage = 'idle' | 'preparing' | 'contacting' | 'waiting' | 'sanitizing' | 'saving' | 'done' | 'error'
+type GenerateStage = 'idle' | 'queued' | 'running' | 'done' | 'error'
 
 const GENERATE_STEPS: { key: GenerateStage; label: string; helper: string }[] = [
-  { key: 'preparing', label: 'Menyiapkan brief', helper: 'Mengambil data prospect dan sinyal audit.' },
-  { key: 'contacting', label: 'Menghubungi AI provider', helper: 'Mengirim instruksi desain ke model.' },
-  { key: 'waiting', label: 'Menunggu respons AI', helper: 'Biasanya 30–90 detik untuk mockup lengkap.' },
-  { key: 'sanitizing', label: 'Membersihkan HTML', helper: 'Menyiapkan hasil agar aman untuk preview.' },
-  { key: 'saving', label: 'Menyimpan preview', helper: 'Menyimpan hasil ke audit record dan storage.' },
+  { key: 'queued', label: 'Mengantri di server', helper: 'Job sudah masuk antrian, menunggu worker.' },
+  { key: 'running', label: 'AI berjalan di server', helper: 'Tanpa batas waktu — kamu bisa tinggalkan tab dan kembali lagi nanti.' },
+  { key: 'done', label: 'Selesai', helper: 'Hasil siap ditampilkan.' },
 ]
 
-interface GenerateResponse {
+interface JobResultPayload {
   html: string
   url: string
+  path: string | null
   fallback: boolean
-  audit_id?: string | null
-  warning?: string | null
+  warning: string | null
+  audit_id: string | null
+  model: string | null
 }
+
+interface EnqueueResponse {
+  job_id: string
+  status: 'queued'
+  poll_url: string
+}
+
+interface StatusResponse {
+  id: string
+  status: 'queued' | 'running' | 'done' | 'failed' | 'unknown'
+  started_at: number | null
+  finished_at: number | null
+  result: JobResultPayload | null
+  error: string | null
+  error_code: string | null
+}
+
+const POLL_INTERVAL_MS = 4000
 
 export function MockupStudio({
   prospect,
@@ -59,50 +77,97 @@ export function MockupStudio({
 
   const debouncedHtml = useDebounced(html, 250)
   const elapsedMs = useElapsed(generationStartedAt, generating)
+  const pollRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+  const stopPolling = React.useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+  }, [])
+
+  React.useEffect(() => () => stopPolling(), [stopPolling])
 
   async function handleGenerate(brief?: string) {
     setGenerating(true)
-    setGenerateStage('preparing')
+    setGenerateStage('queued')
     setGenerationStartedAt(Date.now())
     setWarning(null)
-    try {
-      await delay(250)
-      setGenerateStage('contacting')
-      await delay(250)
-      setGenerateStage('waiting')
 
-      const response = await apiRequest<GenerateResponse>('/api/mockups/generate', {
+    try {
+      const enqueue = await apiRequest<EnqueueResponse>('/api/mockups/generate', {
         method: 'POST',
         body: JSON.stringify({ prospect_id: prospect.id, audit_id: auditId, brief }),
       })
 
-      setGenerateStage('sanitizing')
-      await delay(150)
-      setHtml(response.html)
-      setUrl(response.url)
-      setFallback(Boolean(response.fallback))
-      setAuditId(response.audit_id ?? null)
-      if (response.warning) setWarning(response.warning)
+      const statusUrl = `/api/mockups/status/${enqueue.job_id}`
 
-      setGenerateStage('saving')
-      await delay(150)
-      toast({
-        title: response.fallback ? 'Template fallback dibuat' : 'Mockup baru di-generate',
-        description: response.fallback
-          ? 'AI provider lambat atau gagal, jadi ProspectFlow membuat template awal agar kamu tetap bisa lanjut.'
-          : 'Preview diperbarui.',
-        variant: response.fallback ? 'info' : 'success',
-      })
-      router.refresh()
-      setGenerateStage('done')
+      const finalize = (result: JobResultPayload) => {
+        setHtml(result.html)
+        setUrl(result.url ?? '')
+        setFallback(Boolean(result.fallback))
+        setAuditId(result.audit_id ?? null)
+        if (result.warning) setWarning(result.warning)
+        toast({
+          title: result.fallback ? 'Template fallback dibuat' : 'Mockup baru di-generate',
+          description: result.fallback
+            ? 'AI provider lambat atau gagal, jadi ProspectFlow membuat template awal agar kamu tetap bisa lanjut.'
+            : 'Preview diperbarui.',
+          variant: result.fallback ? 'info' : 'success',
+        })
+        router.refresh()
+        setGenerateStage('done')
+      }
+
+      const fail = (message: string) => {
+        toast({
+          title: 'Gagal generate mockup',
+          description: message,
+          variant: 'error',
+        })
+        setGenerateStage('error')
+      }
+
+      stopPolling()
+      pollRef.current = setInterval(async () => {
+        const finishGenerating = () => {
+          stopPolling()
+          setGenerating(false)
+          setGenerationStartedAt(null)
+        }
+        try {
+          const status = await apiRequest<StatusResponse>(statusUrl, { method: 'GET' })
+          if (status.status === 'queued') {
+            setGenerateStage('queued')
+          } else if (status.status === 'running') {
+            setGenerateStage('running')
+          } else if (status.status === 'done') {
+            if (status.result) finalize(status.result)
+            else fail('Job selesai tapi tidak ada hasil.')
+            finishGenerating()
+          } else if (status.status === 'failed') {
+            if (status.result) {
+              finalize(status.result)
+              setWarning(status.error ?? 'AI job gagal.')
+            } else {
+              fail(status.error ?? 'AI job gagal.')
+            }
+            finishGenerating()
+          } else if (status.status === 'unknown') {
+            fail(status.error ?? 'Job tidak ditemukan — kemungkinan server di-restart.')
+            finishGenerating()
+          }
+        } catch (err) {
+          fail(err instanceof Error ? err.message : 'Polling job gagal.')
+          finishGenerating()
+        }
+      }, POLL_INTERVAL_MS)
     } catch (err) {
       setGenerateStage('error')
       toast({
-        title: 'Gagal generate mockup',
+        title: 'Gagal enqueue mockup',
         description: err instanceof Error ? err.message : 'Coba lagi sebentar.',
         variant: 'error',
       })
-    } finally {
       setGenerating(false)
       setGenerationStartedAt(null)
     }
@@ -331,7 +396,7 @@ function formatElapsed(ms: number): string {
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
-const STAGE_ORDER: GenerateStage[] = ['preparing', 'contacting', 'waiting', 'sanitizing', 'saving']
+const STAGE_ORDER: GenerateStage[] = ['queued', 'running', 'done']
 
 function GenerateProgress({
   stage,
@@ -343,16 +408,18 @@ function GenerateProgress({
   hasExistingHtml: boolean
 }) {
   const activeIndex = STAGE_ORDER.indexOf(stage)
-  const visibleSteps =
-    stage === 'error' || stage === 'done'
-      ? GENERATE_STEPS
-      : GENERATE_STEPS.slice(0, Math.max(activeIndex, 0) + 1)
   const headline =
     stage === 'error'
       ? 'Proses berhenti'
       : stage === 'done'
         ? 'Mockup siap'
-        : 'AI sedang merangkai mockup…'
+        : 'Mockup berjalan di server…'
+
+  const renderedSteps = GENERATE_STEPS.filter((step) => {
+    if (stage === 'done') return true
+    const stepIndex = STAGE_ORDER.indexOf(step.key)
+    return stepIndex >= 0 && stepIndex <= Math.max(activeIndex, 0)
+  })
 
   return (
     <div className="flex h-full min-h-[400px] flex-col bg-slate-50/60 p-5">
@@ -368,8 +435,10 @@ function GenerateProgress({
           <div className="text-sm font-semibold text-slate-950">{headline}</div>
           <div className="mt-0.5 text-xs text-slate-500">
             {stage === 'error'
-              ? 'Coba klik Regenerate, atau sederhanakan brief terlebih dahulu.'
-              : 'AI mockup biasanya selesai dalam 30–90 detik.'}
+              ? 'Coba klik Regenerate untuk enqueue ulang.'
+              : stage === 'done'
+                ? 'Hasil sudah tersedia di preview dan HTML source.'
+                : 'Job berjalan tanpa batas waktu di server. Aman tinggalkan tab ini.'}
           </div>
         </div>
         <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs text-slate-700">
@@ -379,7 +448,7 @@ function GenerateProgress({
       </div>
 
       <ol className="mt-4 space-y-2.5">
-        {visibleSteps.map((step) => {
+        {renderedSteps.map((step) => {
           const stepIndex = STAGE_ORDER.indexOf(step.key)
           const isDone =
             (stage === 'done' && stepIndex <= activeIndex) ||
@@ -417,9 +486,9 @@ function GenerateProgress({
         })}
       </ol>
 
-      {hasExistingHtml && stage !== 'error' ? (
+      {hasExistingHtml && stage !== 'error' && stage !== 'done' ? (
         <p className="mt-4 text-[11px] text-slate-400">
-          Preview di atas akan tertimpa saat hasil AI siap. HTML source di panel kiri dikunci selama proses.
+          HTML source di panel kiri dikunci sementara job berjalan di server. Preview akan diperbarui otomatis saat selesai.
         </p>
       ) : null}
     </div>
@@ -428,9 +497,9 @@ function GenerateProgress({
 
 function formatGenerateWarning(warning: string, fallback: boolean): string {
   if (!warning) return ''
-  if (warning.includes('network') || warning.includes('timeout') || warning.includes('90 detik')) {
+  if (warning.includes('network') || warning.includes('timeout')) {
     return fallback
-      ? 'AI provider belum merespons setelah 90 detik, jadi ProspectFlow membuat template fallback agar kamu tetap bisa lanjut. Klik Regenerate untuk coba lagi.'
+      ? 'AI provider lambat atau gagal, jadi ProspectFlow membuat template fallback agar kamu tetap bisa lanjut. Klik Regenerate untuk coba lagi.'
       : 'AI provider lambat atau gagal merespons. Coba klik Regenerate untuk coba lagi.'
   }
   if (warning.includes('rate_limit')) {

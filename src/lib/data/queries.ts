@@ -158,7 +158,14 @@ export async function getAudits(): Promise<Audit[]> {
 }
 
 export async function getAuditByProspect(prospectId: string): Promise<Audit | null> {
-  const { data, error } = await client().from('audits').select('*').eq('prospect_id', prospectId).maybeSingle()
+  const { data, error } = await client()
+    .from('audits')
+    .select('*')
+    .eq('prospect_id', prospectId)
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
   throwIfError(error, 'Load prospect audit')
   return data ? normalizeAudit(data as Record<string, unknown>) : null
 }

@@ -42,12 +42,16 @@ export async function chatCompletion({
 
   const base = openAiBaseUrl().replace(/\/+$/, '')
   const url = `${base}/chat/completions`
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 90_000)
-  // If the caller passed their own signal, fan-in its abort.
+
+  // Build a forward-only abort signal: if the caller passed their own signal,
+  // we honor it (so the background job can be cancelled), otherwise we have
+  // no hard cap here — the user wants the AI to take as long as it needs.
+  let controller: AbortController | undefined
   if (signal) {
-    if (signal.aborted) controller.abort()
-    signal.addEventListener('abort', () => controller.abort(), { once: true })
+    const c = new AbortController()
+    controller = c
+    if (signal.aborted) c.abort()
+    signal.addEventListener('abort', () => c.abort(), { once: true })
   }
 
   try {
@@ -63,7 +67,7 @@ export async function chatCompletion({
         temperature,
         max_tokens: maxTokens,
       }),
-      signal: controller.signal,
+      signal: controller?.signal,
     })
 
     if (!response.ok) {
@@ -83,11 +87,9 @@ export async function chatCompletion({
   } catch (err) {
     if (err instanceof AiError) throw err
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new AiError('network', 'AI provider belum merespons setelah 90 detik. Coba ulangi atau sederhanakan brief.')
+      throw new AiError('network', 'Permintaan AI provider dibatalkan.')
     }
     throw new AiError('network', err instanceof Error ? err.message : 'Network error saat memanggil AI provider.')
-  } finally {
-    clearTimeout(timeout)
   }
 }
 
