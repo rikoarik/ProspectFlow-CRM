@@ -18,8 +18,35 @@ export async function uploadMockup(
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   const fileName = auditId ? `${auditId}-${stamp}.html` : `adhoc-${stamp}.html`
   const path = `prospect/${prospectId}/${fileName}`
+  // If the generated HTML contains an inline <style>...</style>, extract it
+  // and upload it as a separate .css file, then replace the style block
+  // with a <link rel="stylesheet" href="..."> referencing the uploaded CSS.
+  const styleMatch = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)
+  let finalHtml = html
+  if (styleMatch && styleMatch[1]) {
+    const cssContent = styleMatch[1].trim()
+    if (cssContent.length > 0) {
+      const cssFileName = auditId ? `${auditId}-${stamp}.css` : `adhoc-${stamp}.css`
+      const cssPath = `prospect/${prospectId}/${cssFileName}`
+      const cssBlob = new Blob([cssContent], { type: 'text/css; charset=utf-8' })
+      const { error: cssErr } = await supabase.storage.from(bucket).upload(cssPath, cssBlob, {
+        contentType: 'text/css; charset=utf-8',
+        cacheControl: 'public, max-age=3600',
+        upsert: false,
+      })
+      if (cssErr) {
+        // If uploading CSS fails, continue and keep inline styles rather than aborting.
+        console.warn('Upload CSS failed, keeping inline styles:', cssErr.message)
+      } else {
+        const { data: cssData } = supabase.storage.from(bucket).getPublicUrl(cssPath)
+        const cssPublic = resolvePublicUrl(bucket, cssPath, cssData.publicUrl)
+        // Replace the first <style>...</style> with a stylesheet link
+        finalHtml = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/i, `<link rel="stylesheet" href="${cssPublic}">`)
+      }
+    }
+  }
 
-  const blob = new Blob([html], { type: 'text/html; charset=utf-8' })
+  const blob = new Blob([finalHtml], { type: 'text/html; charset=utf-8' })
   const { error } = await supabase.storage.from(bucket).upload(path, blob, {
     contentType: 'text/html; charset=utf-8',
     cacheControl: 'public, max-age=3600',

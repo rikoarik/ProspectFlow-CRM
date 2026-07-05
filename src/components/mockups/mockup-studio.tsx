@@ -65,7 +65,10 @@ export function MockupStudio({
 }: MockupStudioProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [html, setHtml] = React.useState(initialHtml)
+  const splitInitial = splitStyle(initialHtml)
+  const [html, setHtml] = React.useState(splitInitial.html)
+  const [css, setCss] = React.useState(splitInitial.css)
+  const [activeTab, setActiveTab] = React.useState<'html' | 'css'>('html')
   const [url, setUrl] = React.useState(initialUrl)
   const [fallback, setFallback] = React.useState(initialFallback)
   const [auditId, setAuditId] = React.useState<string | null>(initialAuditId)
@@ -76,7 +79,8 @@ export function MockupStudio({
   const [saving, setSaving] = React.useState(false)
   const [warning, setWarning] = React.useState<string | null>(null)
 
-  const debouncedHtml = useDebounced(html, 250)
+  const composedHtml = React.useMemo(() => insertStyle(html, css), [html, css])
+  const debouncedHtml = useDebounced(composedHtml, 250)
   const elapsedMs = useElapsed(generationStartedAt, generating)
   const pollRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
   const stopPolling = React.useCallback(() => {
@@ -104,7 +108,9 @@ export function MockupStudio({
       const statusUrl = `/api/mockups/status/${enqueue.job_id}`
 
       const finalize = (result: JobResultPayload) => {
-        setHtml(result.html)
+        const split = splitStyle(result.html)
+        setHtml(split.html)
+        setCss(split.css)
         setUrl(result.url ?? '')
         setFallback(Boolean(result.fallback))
         setAuditId(result.audit_id ?? null)
@@ -182,12 +188,13 @@ export function MockupStudio({
     }
     setSaving(true)
     try {
+      const finalHtml = insertStyle(html, css)
       const response = await apiRequest<{ url: string; audit_id: string | null }>('/api/mockups', {
         method: 'POST',
         body: JSON.stringify({
           prospect_id: prospect.id,
           audit_id: auditId,
-          html,
+          html: finalHtml,
         }),
       })
       setUrl(response.url)
@@ -211,14 +218,15 @@ export function MockupStudio({
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(html)
+      await navigator.clipboard.writeText(insertStyle(html, css))
       toast({ title: 'HTML disalin ke clipboard', variant: 'success' })
     } catch {
       toast({ title: 'Gagal menyalin HTML', variant: 'error' })
     }
   }
 
-  const charEstimate = Math.max(1, Math.round(html.length / 4))
+  const finalHtmlForCount = insertStyle(html, css)
+  const charEstimate = Math.max(1, Math.round(finalHtmlForCount.length / 4))
   const deviceSize =
     device === 'desktop'
       ? 'w-full'
@@ -280,14 +288,55 @@ export function MockupStudio({
               <Copy className="h-3 w-3" /> Copy
             </button>
           </div>
-          <Textarea
-            value={html}
-            onChange={(event) => setHtml(event.target.value)}
-            readOnly={generating}
-            spellCheck={false}
-            placeholder={generating ? 'AI sedang merangkai HTML…' : 'Klik Regenerate untuk generate mockup. Hasil AI akan muncul di sini dan langsung ter-render di preview.'}
-            className="h-full min-h-[480px] flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed focus-visible:ring-0"
-          />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('html')}
+                  className={cn(
+                    'px-3 py-1 rounded-t-md text-sm font-medium',
+                    activeTab === 'html' ? 'bg-white border border-b-0' : 'bg-slate-50 text-slate-500',
+                  )}
+                >
+                  HTML
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('css')}
+                  className={cn(
+                    'px-3 py-1 rounded-t-md text-sm font-medium',
+                    activeTab === 'css' ? 'bg-white border border-b-0' : 'bg-slate-50 text-slate-500',
+                  )}
+                >
+                  CSS
+                </button>
+              </div>
+              <div className="text-xs text-slate-500">{activeTab === 'html' ? 'HTML (tanpa <style>)' : 'CSS (ekstrak)'}</div>
+            </div>
+
+            <div className="p-3">
+              {activeTab === 'css' ? (
+                <Textarea
+                  value={css}
+                  onChange={(event) => setCss(event.target.value)}
+                  readOnly={generating}
+                  spellCheck={false}
+                  placeholder={generating ? 'AI sedang merangkai CSS…' : 'CSS yang diekstrak dari dokumen akan muncul di sini. Edit bebas.'}
+                  className="h-40 w-full resize-none font-mono text-xs leading-relaxed focus-visible:ring-0"
+                />
+              ) : (
+                <Textarea
+                  value={html}
+                  onChange={(event) => setHtml(event.target.value)}
+                  readOnly={generating}
+                  spellCheck={false}
+                  placeholder={generating ? 'AI sedang merangkai HTML…' : 'Klik Regenerate untuk generate mockup. Hasil AI akan muncul di sini dan langsung ter-render di preview.'}
+                  className="h-full min-h-[320px] flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed focus-visible:ring-0"
+                />
+              )}
+            </div>
+          </div>
           <div className="flex items-center justify-between border-t border-slate-100 px-3 py-1.5 text-[11px] text-slate-500">
             <span>{html.length.toLocaleString('id-ID')} chars · ~{charEstimate.toLocaleString('id-ID')} tokens</span>
             <span>Sandbox: allow-same-origin only</span>
@@ -338,6 +387,32 @@ export function MockupStudio({
       </div>
     </div>
   )
+}
+
+function splitStyle(input: string): { html: string; css: string } {
+  const html = input ?? ''
+  const match = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)
+  if (match) {
+    const css = match[1].trim()
+    const without = html.replace(match[0], '')
+    return { html: without, css }
+  }
+  return { html, css: '' }
+}
+
+function insertStyle(html: string, css: string): string {
+  if (!css || !css.trim()) return html
+  const styleTag = `<style>${css}</style>`
+  if (/<head\b/i.test(html)) {
+    return html.replace(/<head\b([^>]*)>/i, `<head$1>${styleTag}`)
+  }
+  if (/<html\b/i.test(html)) {
+    return html.replace(/<html\b([^>]*)>/i, `<html$1><head>${styleTag}</head>`)
+  }
+  if (/<!doctype html>/i.test(html)) {
+    return html.replace(/<!(doctype|DOCTYPE)\s+html>/i, (m) => `${m}\n<head>${styleTag}</head>`)
+  }
+  return `<!DOCTYPE html><head>${styleTag}</head>${html}`
 }
 
 function DeviceButton({
