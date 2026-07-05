@@ -6,6 +6,7 @@ import type {
   Communication,
   FollowUp,
   MessageTemplate,
+  MockupGenerationStatus,
   Prospect,
   ProspectStatus,
   Sales,
@@ -78,6 +79,55 @@ function normalizeAudit(row: Record<string, unknown>): Audit {
     mockup_html: typeof row.mockup_html === 'string' ? row.mockup_html : undefined,
     mockup_fallback: Boolean(row.mockup_fallback),
     mockup_generated_at: (row.mockup_generated_at as string | null) ?? null,
+    mockup_job_id: (row.mockup_job_id as string | null) ?? null,
+    mockup_generation_status: (row.mockup_generation_status as MockupGenerationStatus | null) ?? null,
+    mockup_generation_error: (row.mockup_generation_error as string | null) ?? null,
+    mockup_generation_error_code: (row.mockup_generation_error_code as string | null) ?? null,
+    mockup_generation_started_at: (row.mockup_generation_started_at as string | null) ?? null,
+    mockup_generation_finished_at: (row.mockup_generation_finished_at as string | null) ?? null,
+  }
+}
+
+function mockupGenerationQueuedPatch(jobId: string, now: string) {
+  return {
+    mockup_job_id: jobId,
+    mockup_generation_status: 'queued' as MockupGenerationStatus,
+    mockup_generation_error: null,
+    mockup_generation_error_code: null,
+    mockup_generation_started_at: null,
+    mockup_generation_finished_at: null,
+    updated_at: now,
+  }
+}
+
+function mockupGenerationRunningPatch(now: string) {
+  return {
+    mockup_generation_status: 'running' as MockupGenerationStatus,
+    mockup_generation_error: null,
+    mockup_generation_error_code: null,
+    mockup_generation_started_at: now,
+    mockup_generation_finished_at: null,
+    updated_at: now,
+  }
+}
+
+function mockupGenerationFailedPatch(now: string, error: string, errorCode: string | null) {
+  return {
+    mockup_generation_status: 'failed' as MockupGenerationStatus,
+    mockup_generation_error: error,
+    mockup_generation_error_code: errorCode,
+    mockup_generation_finished_at: now,
+    updated_at: now,
+  }
+}
+
+function mockupGenerationDonePatch(now: string) {
+  return {
+    mockup_generation_status: 'done' as MockupGenerationStatus,
+    mockup_generation_error: null,
+    mockup_generation_error_code: null,
+    mockup_generation_finished_at: now,
+    updated_at: now,
   }
 }
 
@@ -168,6 +218,64 @@ export async function getAuditByProspect(prospectId: string): Promise<Audit | nu
     .maybeSingle()
   throwIfError(error, 'Load prospect audit')
   return data ? normalizeAudit(data as Record<string, unknown>) : null
+}
+
+export async function getAuditById(id: string): Promise<Audit | null> {
+  const { data, error } = await client().from('audits').select('*').eq('id', id).maybeSingle()
+  throwIfError(error, 'Load audit')
+  return data ? normalizeAudit(data as Record<string, unknown>) : null
+}
+
+export async function getAuditByMockupJobId(jobId: string): Promise<Audit | null> {
+  const { data, error } = await client().from('audits').select('*').eq('mockup_job_id', jobId).maybeSingle()
+  throwIfError(error, 'Load audit by mockup job id')
+  return data ? normalizeAudit(data as Record<string, unknown>) : null
+}
+
+export async function ensureAuditForMockupGeneration(input: {
+  auditId: string | null
+  prospectId: string
+  jobId: string
+}): Promise<Audit | null> {
+  const now = new Date().toISOString()
+  const patch = mockupGenerationQueuedPatch(input.jobId, now)
+
+  if (input.auditId) {
+    const { data, error } = await client().from('audits').update(patch).eq('id', input.auditId).select().single()
+    throwIfError(error, 'Queue audit mockup generation')
+    return data ? normalizeAudit(data as Record<string, unknown>) : null
+  }
+
+  const { data, error } = await client()
+    .from('audits')
+    .insert({
+      prospect_id: input.prospectId,
+      audit_status: 'Draft',
+      ...patch,
+    })
+    .select()
+    .single()
+  throwIfError(error, 'Create audit for mockup generation')
+  return data ? normalizeAudit(data as Record<string, unknown>) : null
+}
+
+export async function markAuditMockupJobRunning(auditId: string) {
+  const now = new Date().toISOString()
+  const { error } = await client().from('audits').update(mockupGenerationRunningPatch(now)).eq('id', auditId)
+  throwIfError(error, 'Mark audit mockup generation running')
+}
+
+export async function markAuditMockupJobFailed(input: {
+  auditId: string
+  error: string
+  errorCode: string | null
+}) {
+  const now = new Date().toISOString()
+  const { error } = await client()
+    .from('audits')
+    .update(mockupGenerationFailedPatch(now, input.error, input.errorCode))
+    .eq('id', input.auditId)
+  throwIfError(error, 'Mark audit mockup generation failed')
 }
 
 export async function getTemplates(): Promise<MessageTemplate[]> {
@@ -264,6 +372,7 @@ export async function saveAuditMockup(input: {
   fallback: boolean
 }): Promise<Audit | null> {
   const generatedAt = new Date().toISOString()
+  const donePatch = mockupGenerationDonePatch(generatedAt)
 
   if (input.auditId) {
     const { data, error } = await client()
@@ -273,7 +382,7 @@ export async function saveAuditMockup(input: {
         mockup_html: input.html,
         mockup_fallback: input.fallback,
         mockup_generated_at: generatedAt,
-        updated_at: generatedAt,
+        ...donePatch,
       })
       .eq('id', input.auditId)
       .select()
@@ -291,9 +400,105 @@ export async function saveAuditMockup(input: {
       mockup_fallback: input.fallback,
       mockup_generated_at: generatedAt,
       audit_status: 'Draft',
+      ...donePatch,
     })
     .select()
     .single()
   throwIfError(error, 'Insert audit mockup')
   return data ? normalizeAudit(data as Record<string, unknown>) : null
 }
+
+export function buildMockupStatusResult(audit: Audit) {
+  return {
+    html: audit.mockup_html ?? '',
+    url: audit.mockup_url ?? '',
+    path: null,
+    fallback: Boolean(audit.mockup_fallback),
+    warning: audit.mockup_generation_error ?? null,
+    audit_id: audit.id,
+    model: process.env.OPENAI_MODEL ?? null,
+  }
+}
+
+export function toMockupStatusTimestamps(audit: Audit) {
+  return {
+    started_at: audit.mockup_generation_started_at ? Date.parse(audit.mockup_generation_started_at) : null,
+    finished_at: audit.mockup_generation_finished_at ? Date.parse(audit.mockup_generation_finished_at) : null,
+  }
+}
+
+export function derivePersistedMockupStatus(audit: Audit) {
+  if (audit.mockup_generation_status === 'failed') return 'failed' as const
+  if (audit.mockup_html && audit.mockup_generated_at) return 'done' as const
+  if (audit.mockup_generation_status === 'running') return 'running' as const
+  if (audit.mockup_generation_status === 'queued') return 'queued' as const
+  return 'unknown' as const
+}
+
+export function getPersistedMockupStatusError(audit: Audit) {
+  if (audit.mockup_generation_status === 'failed') {
+    return audit.mockup_generation_error ?? 'AI job gagal.'
+  }
+  return null
+}
+
+export function getPersistedMockupStatusErrorCode(audit: Audit) {
+  return audit.mockup_generation_status === 'failed' ? audit.mockup_generation_error_code ?? null : null
+}
+
+export function hasPersistedMockupStatus(audit: Audit) {
+  return Boolean(audit.mockup_job_id || audit.mockup_html || audit.mockup_generation_status)
+}
+
+export function createMockupJobId(seed: number) {
+  return `job_${Date.now().toString(36)}_${seed.toString(36)}`
+}
+
+let nextMockupJobId = 0
+
+export function allocateMockupJobId() {
+  nextMockupJobId += 1
+  return createMockupJobId(nextMockupJobId)
+}
+
+export function resetMockupJobIdCounterForTests() {
+  nextMockupJobId = 0
+}
+
+export type PersistedMockupStatus = ReturnType<typeof derivePersistedMockupStatus>
+
+export type MockupStatusResult = ReturnType<typeof buildMockupStatusResult>
+
+export type MockupStatusTimestamps = ReturnType<typeof toMockupStatusTimestamps>
+
+export type EnsureAuditForMockupGenerationInput = Parameters<typeof ensureAuditForMockupGeneration>[0]
+
+export type MarkAuditMockupJobFailedInput = Parameters<typeof markAuditMockupJobFailed>[0]
+
+export type SaveAuditMockupInput = Parameters<typeof saveAuditMockup>[0]
+
+export type SaveAuditMockupResult = Awaited<ReturnType<typeof saveAuditMockup>>
+
+export type AuditByMockupJobIdResult = Awaited<ReturnType<typeof getAuditByMockupJobId>>
+
+export type AuditByIdResult = Awaited<ReturnType<typeof getAuditById>>
+
+export type AuditByProspectResult = Awaited<ReturnType<typeof getAuditByProspect>>
+
+export type EnsureAuditForMockupGenerationResult = Awaited<ReturnType<typeof ensureAuditForMockupGeneration>>
+
+export type MarkAuditMockupJobRunningResult = Awaited<ReturnType<typeof markAuditMockupJobRunning>>
+
+export type MarkAuditMockupJobFailedResult = Awaited<ReturnType<typeof markAuditMockupJobFailed>>
+
+export type PersistedMockupStatusError = ReturnType<typeof getPersistedMockupStatusError>
+
+export type PersistedMockupStatusErrorCode = ReturnType<typeof getPersistedMockupStatusErrorCode>
+
+export type HasPersistedMockupStatus = ReturnType<typeof hasPersistedMockupStatus>
+
+export type AllocateMockupJobId = typeof allocateMockupJobId
+
+export type CreateMockupJobId = typeof createMockupJobId
+
+export type ResetMockupJobIdCounterForTests = typeof resetMockupJobIdCounterForTests

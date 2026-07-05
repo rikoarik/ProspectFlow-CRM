@@ -1,5 +1,11 @@
 import 'server-only'
-import { getProspect, saveAuditMockup } from '@/lib/data/queries'
+import {
+  getProspect,
+  markAuditMockupJobFailed,
+  markAuditMockupJobRunning,
+  saveAuditMockup,
+  createMockupJobId,
+} from '@/lib/data/queries'
 import { AiError, chatCompletion } from '@/lib/ai/client'
 import { buildMockupPrompt, buildSystemPrompt, buildUserPrompt } from '@/lib/ai/prompt'
 import { buildScaffold } from '@/lib/ai/fallback'
@@ -60,6 +66,7 @@ function getQueue(): JobQueueState {
 }
 
 export interface EnqueueInput {
+  jobId?: string
   prospectId: string
   auditId: string | null
   brief: string | null
@@ -69,7 +76,7 @@ export function enqueueGenerateJob(input: EnqueueInput): GenerateJob {
   const queue = getQueue()
   pruneOldJobs(queue)
   queue.nextId += 1
-  const id = `job_${Date.now().toString(36)}_${queue.nextId.toString(36)}`
+  const id = input.jobId ?? createMockupJobId(queue.nextId)
   const job: GenerateJob = {
     id,
     prospectId: input.prospectId,
@@ -125,6 +132,9 @@ async function runQueue() {
       }
       job.status = 'running'
       job.startedAt = Date.now()
+      if (job.auditId) {
+        await markAuditMockupJobRunning(job.auditId)
+      }
       try {
         job.result = await runJob(job)
         job.status = 'done'
@@ -137,6 +147,13 @@ async function runQueue() {
         job.errorCode = code
         job.status = 'failed'
         job.finishedAt = Date.now()
+        if (job.auditId) {
+          await markAuditMockupJobFailed({
+            auditId: job.auditId,
+            error: message,
+            errorCode: code ?? null,
+          })
+        }
       }
     }
   } finally {

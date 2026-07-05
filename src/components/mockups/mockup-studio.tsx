@@ -39,6 +39,7 @@ interface JobResultPayload {
 
 interface EnqueueResponse {
   job_id: string
+  audit_id: string | null
   status: 'queued'
   poll_url: string
 }
@@ -99,6 +100,7 @@ export function MockupStudio({
         body: JSON.stringify({ prospect_id: prospect.id, audit_id: auditId, brief }),
       })
 
+      setAuditId(enqueue.audit_id ?? auditId)
       const statusUrl = `/api/mockups/status/${enqueue.job_id}`
 
       const finalize = (result: JobResultPayload) => {

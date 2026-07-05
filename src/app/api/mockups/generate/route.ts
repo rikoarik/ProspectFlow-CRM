@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { guardMutation } from '@/lib/auth/api-guard'
-import { getProspect } from '@/lib/data/queries'
+import { allocateMockupJobId, ensureAuditForMockupGeneration, getProspect } from '@/lib/data/queries'
 import { enqueueGenerateJob } from '@/lib/ai/jobs'
 
 export const runtime = 'nodejs'
@@ -29,14 +29,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Prospect tidak ditemukan' }, { status: 404 })
   }
 
-  const job = enqueueGenerateJob({
-    prospectId: body.prospect_id,
+  const jobId = allocateMockupJobId()
+  const audit = await ensureAuditForMockupGeneration({
     auditId: body.audit_id ?? null,
+    prospectId: body.prospect_id,
+    jobId,
+  })
+
+  const job = enqueueGenerateJob({
+    jobId,
+    prospectId: body.prospect_id,
+    auditId: audit?.id ?? body.audit_id ?? null,
     brief: body.brief ?? null,
   })
 
   return NextResponse.json({
     job_id: job.id,
+    audit_id: audit?.id ?? null,
     status: job.status,
     poll_url: `/api/mockups/status/${job.id}`,
   })

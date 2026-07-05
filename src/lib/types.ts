@@ -137,6 +137,8 @@ export interface FollowUp {
   notes: string
 }
 
+export type MockupGenerationStatus = 'queued' | 'running' | 'done' | 'failed'
+
 export interface Audit {
   id: string
   prospect_id: string
@@ -153,6 +155,12 @@ export interface Audit {
   mockup_html?: string
   mockup_fallback?: boolean
   mockup_generated_at?: string | null
+  mockup_job_id?: string | null
+  mockup_generation_status?: MockupGenerationStatus | null
+  mockup_generation_error?: string | null
+  mockup_generation_error_code?: string | null
+  mockup_generation_started_at?: string | null
+  mockup_generation_finished_at?: string | null
 }
 
 export interface MockupRef {
