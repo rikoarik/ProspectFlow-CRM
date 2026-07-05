@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { PriorityBadge } from '@/components/status-badge'
 import { useToast } from '@/components/ui/toast'
 import { apiRequest } from '@/lib/api'
+import { filterProspects } from '@/lib/data/analytics'
 import {
   filterStatusesByView,
   PIPELINE_STATUSES,
@@ -48,16 +49,9 @@ export function KanbanBoard({
   )
 
   const sourceItems = React.useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
-    return prospects.filter((prospect) => {
-      if (!visibleStatuses.includes(prospect.status)) return false
-      if (priority !== 'all' && prospect.priority !== priority) return false
-      if (!normalizedQuery) return true
-      return (
-        prospect.company_name.toLowerCase().includes(normalizedQuery) ||
-        prospect.city.toLowerCase().includes(normalizedQuery)
-      )
-    })
+    const baseMatches = filterProspects(prospects, { query, priority })
+    const visible = new Set(visibleStatuses)
+    return baseMatches.filter((prospect) => visible.has(prospect.status))
   }, [prospects, visibleStatuses, query, priority])
 
   async function move(id: string, status: ProspectStatus) {

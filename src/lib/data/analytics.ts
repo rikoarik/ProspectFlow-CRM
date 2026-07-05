@@ -84,6 +84,22 @@ export function salesByIdMap(sales: Sales[]) {
   return new Map(sales.map((s) => [s.id, s]))
 }
 
+export function filterProspects(
+  prospects: Prospect[],
+  options: { query?: string; priority?: 'all' | Prospect['priority'] },
+): Prospect[] {
+  const normalizedQuery = options.query?.trim().toLowerCase() ?? ''
+  const priority = options.priority ?? 'all'
+  return prospects.filter((prospect) => {
+    if (priority !== 'all' && prospect.priority !== priority) return false
+    if (!normalizedQuery) return true
+    return (
+      prospect.company_name.toLowerCase().includes(normalizedQuery) ||
+      prospect.city.toLowerCase().includes(normalizedQuery)
+    )
+  })
+}
+
 export interface PipelineMetrics {
   total: number
   totalValue: number
