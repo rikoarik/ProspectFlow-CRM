@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const profile = await getProfileByAuthUserId(data.user.id)
+  const profile = await getProfileByAuthUserId(data.user.id, data.user.email)
   if (!profile) {
     await supabase.auth.signOut()
     return NextResponse.json(
