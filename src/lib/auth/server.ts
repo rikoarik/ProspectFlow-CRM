@@ -7,6 +7,7 @@ export interface CrmProfile {
   id: string
   full_name: string
   email: string
+  username?: string | null
   role: 'Admin' | 'Sales'
   avatar_url: string | null
 }
@@ -15,6 +16,50 @@ export interface AuthSession {
   userId: string
   email: string
   profile: CrmProfile
+}
+
+export interface UsernameLookup {
+  profileId: string
+  email: string
+  full_name: string
+  role: 'Admin' | 'Sales'
+  avatar_url: string | null
+}
+
+/**
+ * Resolve a username (as typed in the login form) to the linked profile's
+ * email. Email is sensitive and the anon key client can't read profiles
+ * pre-login (RLS), so this uses the service-role admin client.
+ *
+ * Stored usernames are lowercased; login compares via `ilike` so users
+ * can type mixed case.
+ */
+export async function findProfileByUsername(
+  username: string,
+): Promise<UsernameLookup | null> {
+  const admin = getSupabaseAdminClient()
+  if (!admin) return null
+  const normalized = username.trim().toLowerCase()
+  if (!normalized) return null
+
+  const { data, error } = await admin
+    .from('profiles')
+    .select('id, email, full_name, role, avatar_url')
+    .ilike('username', normalized)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Lookup by username failed: ${error.message}`)
+  }
+  if (!data) return null
+
+  return {
+    profileId: (data as { id: string }).id,
+    email: (data as { email: string }).email,
+    full_name: (data as { full_name: string }).full_name,
+    role: (data as { role: 'Admin' | 'Sales' }).role,
+    avatar_url: (data as { avatar_url: string | null }).avatar_url,
+  }
 }
 
 /**
@@ -65,7 +110,6 @@ export async function getProfileByAuthUserId(
     .from('profiles')
     .select('id, full_name, email, role, avatar_url')
     .ilike('email', email)
-    .is('auth_user_id', null)
     .maybeSingle()
 
   if (linkError) {
@@ -73,10 +117,11 @@ export async function getProfileByAuthUserId(
   }
   if (!byEmail) return null
 
+  const profileId = (byEmail as { id: string }).id
   const { data: updated, error: updateError } = await admin
     .from('profiles')
     .update({ auth_user_id: userId })
-    .eq('id', (byEmail as { id: string }).id)
+    .eq('id', profileId)
     .select('id, full_name, email, role, avatar_url')
     .maybeSingle()
 

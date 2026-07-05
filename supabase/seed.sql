@@ -1,7 +1,11 @@
 -- ProspectFlow CRM seed data generated from pt_prospect_expanded_verified_contacts_2026.xlsx
 
-insert into profiles (id, full_name, email, role) values
-  ('sales-1', 'Admin', 'admin@prospectflow.app', 'Admin') on conflict (id) do nothing;
+insert into profiles (id, full_name, email, username, role) values
+  ('sales-1', 'Admin', 'admin@prospectflow.app', 'admin', 'Admin'),
+  ('sales-2', 'Budi Santoso', 'budi@prospectflow.app', 'budi.s', 'Sales'),
+  ('sales-3', 'Citra Mulia', 'citra@prospectflow.app', 'citra.m', 'Sales'),
+  ('sales-4', 'Dimas Pratama', 'dimas@prospectflow.app', 'dimas.p', 'Sales')
+  on conflict (id) do nothing;
 
 insert into prospects (id, company_name, industry, city, website, email, phone, contact_person, source, priority, active_confidence, active_evidence, website_audit_signal, offer_angle, assigned_to, status, first_channel, last_contacted_at, next_follow_up_at, notes, created_at, updated_at) values
   ('prospect-1', 'PT Adimitra Karunia', 'Import, Export & Trading', 'Surabaya', 'https://adimitrakarunia.co.id/contact.html', 'marketing@adimitrakarunia.co.id, adikarunia121601@gmail.com', '031-3282356 / Fax 031-3282361', null, 'https://adimitrakarunia.co.id/contact.html', 'A', 'High', 'Official site reachable; contact page lists office, phone, emails, import/export services.', 'Copyright 2015, old layout, Yahoo Messenger element, weak mobile/CTA.', 'Modern B2B import-export company profile + WhatsApp CTA + service pages.', 'sales-2', 'New', 'Email', '2026-07-03T00:00:00.000Z', '2026-07-01T00:00:00.000Z', 'Strong demo candidate; previous mockup already started.', '2026-07-03T00:00:00.000Z', '2026-07-03T00:00:00.000Z'),

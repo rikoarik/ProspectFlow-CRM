@@ -12,7 +12,7 @@ interface LoginFormProps {
 
 export function LoginForm({ redirect }: LoginFormProps) {
   const router = useRouter()
-  const [email, setEmail] = React.useState('')
+  const [username, setUsername] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -24,7 +24,7 @@ export function LoginForm({ redirect }: LoginFormProps) {
     try {
       await apiRequest('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       })
       router.replace(redirect || '/')
       router.refresh()
@@ -39,18 +39,18 @@ export function LoginForm({ redirect }: LoginFormProps) {
   return (
     <form onSubmit={onSubmit} className="mt-6 space-y-4">
       <div className="space-y-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-slate-700">
-          Email
+        <label htmlFor="username" className="text-sm font-medium text-slate-700">
+          Username
         </label>
         <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
+          id="username"
+          name="username"
+          type="text"
+          autoComplete="username"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="kamu@prospectflow.app"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="budi.s"
         />
       </div>
       <div className="space-y-1.5">

@@ -3,10 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 const NoopRealtimeTransport = class { }
 
 const SEED_USERS = [
-  { profileId: 'sales-1', email: 'admin@prospectflow.app' },
-  { profileId: 'sales-2', email: 'budi@prospectflow.app' },
-  { profileId: 'sales-3', email: 'citra@prospectflow.app' },
-  { profileId: 'sales-4', email: 'dimas@prospectflow.app' },
+  { profileId: 'sales-1', email: 'admin@prospectflow.app', username: 'admin', fullName: 'Admin' },
+  { profileId: 'sales-2', email: 'budi@prospectflow.app', username: 'budi.s', fullName: 'Budi Santoso' },
+  { profileId: 'sales-3', email: 'citra@prospectflow.app', username: 'citra.m', fullName: 'Citra Mulia' },
+  { profileId: 'sales-4', email: 'dimas@prospectflow.app', username: 'dimas.p', fullName: 'Dimas Pratama' },
 ]
 
 function required(name) {
@@ -69,6 +69,14 @@ async function linkProfile(admin, profileId, userId) {
   if (error) throw error
 }
 
+async function syncUsername(admin, profileId, username) {
+  const { error } = await admin
+    .from('profiles')
+    .update({ username })
+    .eq('id', profileId)
+  if (error) throw error
+}
+
 async function main() {
   const url = required('NEXT_PUBLIC_SUPABASE_URL')
   const serviceRole = required('SUPABASE_SERVICE_ROLE_KEY')
@@ -81,7 +89,8 @@ async function main() {
   for (const seedUser of SEED_USERS) {
     const user = await ensureAuthUser(admin, seedUser.email, password)
     await linkProfile(admin, seedUser.profileId, user.id)
-    console.log(`linked ${seedUser.profileId} -> ${seedUser.email} -> ${user.id}`)
+    await syncUsername(admin, seedUser.profileId, seedUser.username)
+    console.log(`linked ${seedUser.profileId} -> ${seedUser.email} -> username=${seedUser.username} -> ${user.id}`)
   }
 }
 
