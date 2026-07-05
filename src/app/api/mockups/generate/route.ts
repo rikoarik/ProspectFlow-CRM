@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { guardMutation } from '@/lib/auth/api-guard'
 import { allocateMockupJobId, ensureAuditForMockupGeneration, getProspect } from '@/lib/data/queries'
-import { enqueueGenerateJob } from '@/lib/ai/jobs'
+import { enqueueGenerateJob, runJob } from '@/lib/ai/jobs'
 
 export const runtime = 'nodejs'
 // Request itself is fast (just enqueues) so we don't need a large maxDuration.
@@ -42,6 +42,27 @@ export async function POST(request: Request) {
     auditId: audit?.id ?? body.audit_id ?? null,
     brief: body.brief ?? null,
   })
+  // If running on Vercel (serverless ephemeral), process inline to avoid relying on an in-memory worker.
+  if (process.env.VERCEL) {
+    try {
+      const result = await runJob(job)
+      return NextResponse.json({
+        job_id: job.id,
+        audit_id: audit?.id ?? null,
+        status: 'done',
+        poll_url: `/api/mockups/status/${job.id}`,
+        result,
+      })
+    } catch (err) {
+      return NextResponse.json({
+        job_id: job.id,
+        audit_id: audit?.id ?? null,
+        status: 'failed',
+        poll_url: `/api/mockups/status/${job.id}`,
+        error: err instanceof Error ? err.message : String(err),
+      }, { status: 500 })
+    }
+  }
 
   return NextResponse.json({
     job_id: job.id,

@@ -161,7 +161,7 @@ async function runQueue() {
   }
 }
 
-async function runJob(job: GenerateJob): Promise<JobResult> {
+export async function runJob(job: GenerateJob): Promise<JobResult> {
   const prospect = await getProspect(job.prospectId)
   if (!prospect) {
     throw new Error(`Prospect ${job.prospectId} tidak ditemukan`)
@@ -181,7 +181,18 @@ async function runJob(job: GenerateJob): Promise<JobResult> {
         ],
         temperature: 0.7,
       })
-      html = sanitizeHtmlForStorage(extractHtml(raw))
+      // Temporary debug logging to diagnose truncation issues.
+      try {
+        console.debug('[AI raw response] length=', raw?.length ?? 0)
+        console.debug('[AI raw response] head=', String(raw).slice(0, 2000))
+      } catch (e) {
+        // ignore logging failures in production
+      }
+      const extracted = extractHtml(raw)
+      try {
+        console.debug('[AI extracted html] length=', extracted?.length ?? 0)
+      } catch (e) {}
+      html = sanitizeHtmlForStorage(extracted)
     } catch (err) {
       const code =
         err instanceof AiError ? err.code : err instanceof Error ? 'unknown' : 'unknown'
