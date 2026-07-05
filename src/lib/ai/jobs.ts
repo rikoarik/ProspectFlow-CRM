@@ -196,9 +196,7 @@ async function runJob(job: GenerateJob): Promise<JobResult> {
     aiError = 'missing_key: OPENAI_API_KEY belum diisi di .env.local'
   }
 
-  if (html.length > 256 * 1024) {
-    throw new Error('HTML hasil generate melebihi 256 KB')
-  }
+  
 
   let url = ''
   let uploadPath: string | null = null

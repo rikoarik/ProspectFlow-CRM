@@ -26,9 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Prospect tidak ditemukan' }, { status: 404 })
   }
 
-  if (body.html.length > 256 * 1024) {
-    return NextResponse.json({ error: 'HTML melebihi 256 KB' }, { status: 413 })
-  }
+  
 
   const clean = sanitizeHtmlForStorage(body.html)
 
