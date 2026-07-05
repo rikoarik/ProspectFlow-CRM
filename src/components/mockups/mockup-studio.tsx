@@ -371,7 +371,7 @@ export function MockupStudio({
                 <iframe
                   key={device}
                   title="AI mockup preview"
-                  sandbox="allow-same-origin"
+                  sandbox="allow-same-origin allow-scripts"
                   srcDoc={debouncedHtml}
                   className="h-full w-full"
                 />
