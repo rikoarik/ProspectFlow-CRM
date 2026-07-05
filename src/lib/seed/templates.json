@@ -1,0 +1,51 @@
+[
+  {
+    "id": "tpl-1",
+    "title": "First Outreach WhatsApp",
+    "channel": "WhatsApp",
+    "category": "First Outreach",
+    "content": "Halo Pak/Bu, saya sempat melihat website {{company_name}}. Bisnisnya terlihat aktif dan cukup potensial. Saat saya buka lewat HP, ada beberapa bagian yang menurut saya bisa dibuat lebih mudah untuk calon klien menghubungi tim Bapak/Ibu. Saya coba buat mini audit singkat dan contoh improvement untuk halaman utamanya. Boleh saya kirimkan di sini?"
+  },
+  {
+    "id": "tpl-2",
+    "title": "Follow Up 1",
+    "channel": "WhatsApp",
+    "category": "Follow Up",
+    "content": "Halo {{contact_person}}, ingin follow up pesan sebelumnya terkait website {{company_name}}. Apakah ada waktu singkat untuk melihat contoh improvement yang sudah saya siapkan untuk {{problem_signal}}?\n\nSalam,\n{{sales_name}}"
+  },
+  {
+    "id": "tpl-3",
+    "title": "Follow Up 2",
+    "channel": "Email",
+    "category": "Follow Up",
+    "content": "Subject: Ide singkat untuk {{company_name}}\n\nHalo, saya {{sales_name}} dari tim web specialist. Kami mengaudit website {{company_name}} ({{website}}) dan menemukan beberapa peluang di area {{problem_signal}}. Saya lampirkan mockup singkat untuk halaman utamanya. Boleh dijadwalkan 15 menit minggu ini untuk diskusi?"
+  },
+  {
+    "id": "tpl-4",
+    "title": "Email Intro",
+    "channel": "Email",
+    "category": "Intro",
+    "content": "Subject: Ide {{industry}} singkat untuk {{company_name}}\n\nHalo tim {{company_name}},\n\nSaya {{sales_name}}. Saya baru saja melihat website {{company_name}} di {{website}} dan tertarik dengan bisnis Anda di industri {{industry}}. Saya menyiapkan mini audit gratis yang menunjukkan 3 peluang utama untuk meningkatkan enquiry dari website.\n\nBoleh saya kirimkan ringkasannya?\n\nTerima kasih,\n{{sales_name}}"
+  },
+  {
+    "id": "tpl-5",
+    "title": "Kirim Audit Website",
+    "channel": "WhatsApp",
+    "category": "Audit",
+    "content": "Halo, berikut saya lampirkan mini audit website {{company_name}}. Fokus utama kami adalah {{problem_signal}}. Bila berkenan, kita bisa lanjut ke tahap mockup."
+  },
+  {
+    "id": "tpl-6",
+    "title": "Kirim Proposal",
+    "channel": "Email",
+    "category": "Proposal",
+    "content": "Subject: Proposal redesign website {{company_name}}\n\nTerima kasih atas waktunya. Saya lampirkan proposal redesign untuk {{company_name}}. Highlight utama: peningkatan CTA WhatsApp, optimasi mobile, dan penawaran {{offer_angle}}."
+  },
+  {
+    "id": "tpl-7",
+    "title": "Closing Reminder",
+    "channel": "WhatsApp",
+    "category": "Closing",
+    "content": "Halo {{contact_person}}, ingin mengingatkan proposal untuk {{company_name}}. Jika ada pertanyaan atau penyesuaian, saya siap bantu. Semoga kita bisa mulai minggu ini."
+  }
+]

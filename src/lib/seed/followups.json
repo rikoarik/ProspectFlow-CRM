@@ -1,0 +1,353 @@
+[
+  {
+    "id": "fu-1",
+    "prospect_id": "prospect-1",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-2",
+    "prospect_id": "prospect-4",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-3",
+    "prospect_id": "prospect-7",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-4",
+    "prospect_id": "prospect-10",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-5",
+    "prospect_id": "prospect-13",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-6",
+    "prospect_id": "prospect-16",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-7",
+    "prospect_id": "prospect-19",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-8",
+    "prospect_id": "prospect-22",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-9",
+    "prospect_id": "prospect-25",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-10",
+    "prospect_id": "prospect-28",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-11",
+    "prospect_id": "prospect-31",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-12",
+    "prospect_id": "prospect-34",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-13",
+    "prospect_id": "prospect-37",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-14",
+    "prospect_id": "prospect-40",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-15",
+    "prospect_id": "prospect-43",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-16",
+    "prospect_id": "prospect-46",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-17",
+    "prospect_id": "prospect-49",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-18",
+    "prospect_id": "prospect-52",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-19",
+    "prospect_id": "prospect-55",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-20",
+    "prospect_id": "prospect-58",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-21",
+    "prospect_id": "prospect-61",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-22",
+    "prospect_id": "prospect-64",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-23",
+    "prospect_id": "prospect-67",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-24",
+    "prospect_id": "prospect-70",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-25",
+    "prospect_id": "prospect-73",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-26",
+    "prospect_id": "prospect-76",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-27",
+    "prospect_id": "prospect-79",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-28",
+    "prospect_id": "prospect-82",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-29",
+    "prospect_id": "prospect-85",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-30",
+    "prospect_id": "prospect-88",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-31",
+    "prospect_id": "prospect-91",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-32",
+    "prospect_id": "prospect-94",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-33",
+    "prospect_id": "prospect-97",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-34",
+    "prospect_id": "prospect-100",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-35",
+    "prospect_id": "prospect-103",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-03T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-36",
+    "prospect_id": "prospect-106",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-01T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-37",
+    "prospect_id": "prospect-109",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-04T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Done",
+    "notes": ""
+  },
+  {
+    "id": "fu-38",
+    "prospect_id": "prospect-112",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-02T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  },
+  {
+    "id": "fu-39",
+    "prospect_id": "prospect-115",
+    "sales_id": "sales-2",
+    "follow_up_date": "2026-07-05T00:00:00.000Z",
+    "reason": "Follow up setelah outreach awal",
+    "status": "Pending",
+    "notes": ""
+  }
+]

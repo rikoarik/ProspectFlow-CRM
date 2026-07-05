@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sales-1",
+    "full_name": "Admin Demo",
+    "email": "admin@prospectflow.app",
+    "role": "Admin"
+  },
+  {
+    "id": "sales-2",
+    "full_name": "Budi Santoso",
+    "email": "budi@prospectflow.app",
+    "role": "Sales"
+  },
+  {
+    "id": "sales-3",
+    "full_name": "Citra Wijaya",
+    "email": "citra@prospectflow.app",
+    "role": "Sales"
+  },
+  {
+    "id": "sales-4",
+    "full_name": "Dimas Pratama",
+    "email": "dimas@prospectflow.app",
+    "role": "Sales"
+  }
+]
