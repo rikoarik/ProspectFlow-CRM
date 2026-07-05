@@ -30,6 +30,11 @@ interface OpenAiChatResponse {
   error?: { message?: string; code?: string }
 }
 
+interface OpenAiStreamChunk {
+  choices?: { delta?: { role?: string; content?: string }; finish_reason?: string | null }[]
+  error?: { message?: string; code?: string }
+}
+
 export async function chatCompletion({
   messages,
   temperature = 0.7,
@@ -43,9 +48,8 @@ export async function chatCompletion({
   const base = openAiBaseUrl().replace(/\/+$/, '')
   const url = `${base}/chat/completions`
 
-  // Build a forward-only abort signal: if the caller passed their own signal,
-  // we honor it (so the background job can be cancelled), otherwise we have
-  // no hard cap here — the user wants the AI to take as long as it needs.
+  // Forward-only abort: if the caller passed a signal (e.g. future job
+  // cancellation), honor it. Otherwise there is no client-imposed hard cap here.
   let controller: AbortController | undefined
   if (signal) {
     const c = new AbortController()
@@ -70,15 +74,27 @@ export async function chatCompletion({
       signal: controller?.signal,
     })
 
+    const rawText = await response.text().catch(() => '')
+
     if (!response.ok) {
-      const text = await response.text().catch(() => '')
       if (response.status === 429 || response.status === 529) {
-        throw new AiError('rate_limit', `AI provider rate-limited (${response.status}). ${text.slice(0, 200)}`, response.status)
+        throw new AiError('rate_limit', `AI provider rate-limited (${response.status}). ${rawText.slice(0, 200)}`, response.status)
       }
-      throw new AiError('bad_response', `AI provider error (${response.status}). ${text.slice(0, 200)}`, response.status)
+      throw new AiError('bad_response', `AI provider error (${response.status}). ${rawText.slice(0, 200)}`, response.status)
     }
 
-    const payload = (await response.json()) as OpenAiChatResponse
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+    const looksLikeSse = contentType.includes('text/event-stream') || /^\s*data:\s*/i.test(rawText)
+
+    if (looksLikeSse) {
+      const content = parseSseChatContent(rawText)
+      if (!content) {
+        throw new AiError('bad_response', 'AI provider returned an empty SSE stream.')
+      }
+      return stripThinking(content)
+    }
+
+    const payload = JSON.parse(rawText) as OpenAiChatResponse
     const content = payload.choices?.[0]?.message?.content
     if (!content) {
       throw new AiError('bad_response', payload.error?.message ?? 'AI provider returned an empty response.')
@@ -91,6 +107,31 @@ export async function chatCompletion({
     }
     throw new AiError('network', err instanceof Error ? err.message : 'Network error saat memanggil AI provider.')
   }
+}
+
+function parseSseChatContent(raw: string): string {
+  const lines = raw.split(/\r?\n/)
+  let final = ''
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed.startsWith('data:')) continue
+
+    const payload = trimmed.slice(5).trim()
+    if (!payload || payload === '[DONE]') continue
+
+    let chunk: OpenAiStreamChunk
+    try {
+      chunk = JSON.parse(payload) as OpenAiStreamChunk
+    } catch {
+      continue
+    }
+
+    const delta = chunk.choices?.[0]?.delta?.content
+    if (delta) final += delta
+  }
+
+  return final.trim()
 }
 
 function stripThinking(text: string): string {
